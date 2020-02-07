@@ -1,0 +1,29 @@
+-- Copyright (c) 2020 The DAML Authors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Admission where
+
+import Admission
+
+admission = scenario do
+  alice <- getParty "Alice"
+  hospital <- getParty "Hospital"
+
+  admissionProposalCid <- submit hospital do
+    create AdmissionProposal with hospital; puerperium = alice
+
+  submitMustFail hospital do
+    exercise admissionProposalCid Reject
+
+  submit alice do
+    exercise admissionProposalCid Reject
+
+  admissionProposalCid <- submit hospital do
+    create AdmissionProposal with hospital; puerperium = alice
+
+  submitMustFail hospital do
+    exercise admissionProposalCid Accept
+    
+  submit alice do
+    exercise admissionProposalCid Accept

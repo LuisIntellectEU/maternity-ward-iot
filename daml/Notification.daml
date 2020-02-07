@@ -1,0 +1,18 @@
+daml 1.2
+module Notification where
+
+type NotificationId = ContractId Notification
+
+template Notification
+  with
+    notifier : Party
+    babyIoT : Party
+    observers : [Party]
+    reason : Optional Text
+    createdAt : Time
+  where
+    signatory notifier
+    controller babyIoT can
+      Consume : ()
+        do 
+          return ()

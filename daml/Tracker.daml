@@ -1,0 +1,47 @@
+daml 1.2
+module Tracker where
+
+import Notification
+import DA.List as L
+
+type TrackerId = ContractId Tracker
+
+template Tracker
+  with
+    hospital : Party
+    puerperium : Party
+    babyIoT : Party
+    locationIoTs : [Party]
+  where
+    ensure (L.length locationIoTs > 0)
+    signatory hospital
+    observer locationIoTs, puerperium, babyIoT
+    
+    nonconsuming choice Alarm : ContractId Notification 
+      with
+        exitLocationIoT : Party
+      controller exitLocationIoT
+        do
+          assert (exitLocationIoT `elem` locationIoTs)
+          currentTime <- getTime
+          create Notification with notifier = exitLocationIoT; babyIoT; observers = [hospital, puerperium, babyIoT]; reason = Some "Possible Abduction"; createdAt = currentTime
+    nonconsuming choice TreatmentRoom : ContractId Notification
+      with
+        treatmentRoomIoT : Party
+        treatmentDescription : Text
+      controller treatmentRoomIoT
+        do
+          assert (treatmentRoomIoT `elem` locationIoTs)
+          currentTime <- getTime
+          create Notification with notifier = treatmentRoomIoT; babyIoT; observers = [hospital, puerperium, babyIoT]; reason = Some treatmentDescription; createdAt = currentTime
+    nonconsuming choice Nursery : ContractId Notification
+      with
+        nurseryIoT : Party
+      controller nurseryIoT
+        do
+          assert (nurseryIoT `elem` locationIoTs)
+          currentTime <- getTime
+          create Notification with notifier = nurseryIoT; babyIoT; observers = [hospital, puerperium, babyIoT]; reason = None; createdAt = currentTime      
+
+empty = scenario do
+  return ()

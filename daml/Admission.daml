@@ -1,0 +1,47 @@
+daml 1.2
+module Admission where
+
+import Tracker
+
+type AdmissionProposalId = ContractId AdmissionProposal
+
+template AdmissionProposal
+  with
+    hospital : Party
+    puerperium : Party
+  where
+    ensure hospital /= puerperium
+    signatory hospital
+    controller puerperium can
+      Accept : AdmissionAgreementId
+        do
+          create AdmissionAgreement with hospital; puerperium
+      Reject : ()
+        do
+          return ()
+
+type AdmissionAgreementId = ContractId AdmissionAgreement
+
+template AdmissionAgreement
+  with
+    hospital : Party
+    puerperium : Party
+  where
+    signatory hospital, puerperium
+    controller hospital can
+      nonconsuming AssignIoT : ContractId Tracker
+        with
+          babyIoT : Party
+          locationIoTs : [Party]
+        do
+          create Tracker with hospital; puerperium; babyIoT; locationIoTs
+      Discharge : ()
+        with 
+          trackerCid : ContractId Tracker
+        do
+          archive trackerCid
+          return ()
+
+empty = scenario do
+  return ()
+          

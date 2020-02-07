@@ -1,0 +1,12 @@
+sdk-version: 0.13.50
+name: maternity-ward-iot
+source: daml
+scenario: Admission:empty
+parties:
+  - Hospital
+  - Alice
+  - Bernadette
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib

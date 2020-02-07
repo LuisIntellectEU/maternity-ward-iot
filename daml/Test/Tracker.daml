@@ -1,0 +1,28 @@
+-- Copyright (c) 2020 The DAML Authors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Tracker where
+
+import Test.Admission
+import Admission
+import Tracker
+
+tracker = scenario do
+  admissionAgreementCid <- admission
+  --
+  hospital <- getParty "Hospital"
+  exitIoT <- getParty "ExitIoT"
+  treatmentRoomIoT <- getParty "TreatmentRoomIoT"
+  nurseryIoT <- getParty "NurseryIoT"
+  babyIoT <- getParty "BabyIoT"
+  --
+  trackerCid <- submit hospital do exercise admissionAgreementCid AssignIoT with babyIoT; locationIoTs = [exitIoT, treatmentRoomIoT, nurseryIoT]
+  submit nurseryIoT do exercise trackerCid Nursery with nurseryIoT
+  submit treatmentRoomIoT do exercise trackerCid TreatmentRoom with treatmentRoomIoT; treatmentDescription = "Stomach aspiration"
+  submit nurseryIoT do exercise trackerCid Nursery with nurseryIoT
+  submit treatmentRoomIoT do exercise trackerCid TreatmentRoom with treatmentRoomIoT; treatmentDescription = "Bili Lights"
+  submit nurseryIoT do exercise trackerCid Nursery with nurseryIoT
+  submit exitIoT do exercise trackerCid Alarm with exitLocationIoT = exitIoT
+  submit hospital do exercise admissionAgreementCid Discharge with trackerCid
+  return ()
